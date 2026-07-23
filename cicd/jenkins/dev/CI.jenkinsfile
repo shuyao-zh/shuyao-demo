@@ -40,10 +40,13 @@ pipeline {
 
     post {
         always {
-            // Ensure a workspace context exists before publishing results.
-            node {
-                junit allowEmptyResults: true, testResults: '**/surefire-reports/*.xml'
-                archiveArtifacts artifacts: 'target/*.jar', allowEmptyArchive: true
+            script {
+                try {
+                    junit allowEmptyResults: true, testResults: '**/surefire-reports/*.xml'
+                    archiveArtifacts artifacts: 'target/*.jar', allowEmptyArchive: true
+                } catch (Exception ex) {
+                    echo "Skipping test report/artifact publish: ${ex.message}"
+                }
             }
         }
     }
