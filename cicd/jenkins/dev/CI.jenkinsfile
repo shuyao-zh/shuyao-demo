@@ -4,6 +4,7 @@ pipeline {
     options {
         timestamps()
         disableConcurrentBuilds()
+        skipDefaultCheckout(true)
     }
 
     environment {
@@ -13,7 +14,8 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                checkout scm
+                // Use HTTPS checkout to avoid SSH transport issues on build agents.
+                git branch: "${env.BRANCH_NAME ?: 'main'}", url: 'https://github.com/shuyao-zh/shuyao-demo.git'
             }
         }
 
@@ -38,8 +40,11 @@ pipeline {
 
     post {
         always {
-            junit allowEmptyResults: true, testResults: '**/surefire-reports/*.xml'
-            archiveArtifacts artifacts: 'target/*.jar', allowEmptyArchive: true
+            // Ensure a workspace context exists before publishing results.
+            node {
+                junit allowEmptyResults: true, testResults: '**/surefire-reports/*.xml'
+                archiveArtifacts artifacts: 'target/*.jar', allowEmptyArchive: true
+            }
         }
     }
 }
