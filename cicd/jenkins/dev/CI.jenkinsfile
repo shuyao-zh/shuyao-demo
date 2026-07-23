@@ -81,7 +81,21 @@ ${MVN_CMD} ''' + "${mavenSettingsArg} ${env.MVN_ARGS} test"
             }
             steps {
                 script {
-                    def mavenSettingsArg = fileExists('settings.xml') ? '-s settings.xml' : ''
+                    def mavenSettingsArg = ''
+                    if (fileExists('settings.xml')) {
+                        // Deploy directly to Artifactory to avoid intermittent proxy-side broken pipe errors.
+                        sh '''#!/bin/bash
+set -euo pipefail
+mkdir -p .maven
+awk '
+BEGIN { skip=0 }
+/<proxies>/ { skip=1; next }
+/<\/proxies>/ { skip=0; next }
+skip==0 { print }
+' settings.xml > .maven/settings-no-proxy.xml
+'''
+                        mavenSettingsArg = '-s .maven/settings-no-proxy.xml'
+                    }
                     // Retry deploy to tolerate transient Artifactory socket resets.
                     retry(3) {
                         sh '''#!/bin/bash
