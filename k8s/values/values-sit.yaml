@@ -1,0 +1,128 @@
+# Default values for release.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+# Default replica count is should be at least 2 for HA if autoscaling is disabled
+replicaCount: 2
+
+appName: hk-aks-demo-java-maven-kaiski
+version: v1
+appSystem: hk
+revisionHistoryLimit: "2"
+appVersion: 1.0.0-SNAPSHOT
+gitCommit: XXXXX
+
+# Define release label
+env: sit
+release: 1.0.0-SNAPSHOT
+tier: backend
+country: hkg
+budev: ato
+bu: hk
+track: core
+costcenter: 8419
+
+container:
+  env:
+    - name: NEW_RELIC_AGENT_ENABLED
+      value: "false"
+    - name: NEW_RELIC_APP_NAME
+      value: "hk-aks-demo-java-maven-kaiski-sit"
+    - name: NEW_RELIC_LICENSE_KEY
+      value: "68d93d382301e2155f7f67097ad65dcd6db76cde"
+    - name: NEW_RELIC_DISTRIBUTED_TRACING_ENABLED
+      value: "true"
+  args:
+    [
+      "--azure.keyvault.enabled=true",
+      "--azure.keyvault.dek-name=HK-DEK",
+      "--azure.keyvault.uri=https://mfcakv-eas-hkcomvault02.vault.azure.net",
+      "--azure.keyvault.client-id=e56ea198-c7d3-4b63-a056-a63be718cac6",
+      "--azure.keyvault.client-key=~2BhkV3l5qp~Y8UXf6dO~kKbGH.mX1-_L.",
+      "--azure.keyvault.tenant-id=5d3e2773-e07f-4432-a630-1a0f68a28a05",
+      "--spring.application.name=hk-aks-demo-java-maven-kaiski",
+      "--newrelic.environment=MLF-PREPROD",
+      "--spring.profiles.active=sit,hk"
+    ]
+  ports:
+    - name: http
+      containerPort: 8080
+      protocol: TCP
+
+  livenessProbe:
+    failureThreshold: 3
+    httpGet:
+      path: /actuator/health/liveness
+      port: http
+      scheme: HTTP
+    initialDelaySeconds: 180
+    periodSeconds: 20
+    tcpSocket: null
+    successThreshold: 1
+    timeoutSeconds: 5
+  readinessProbe:
+    failureThreshold: 3
+    httpGet:
+      path: /actuator/health/readiness
+      port: http
+      scheme: HTTP
+    initialDelaySeconds: 180
+    periodSeconds: 20
+    tcpSocket: null
+    successThreshold: 1
+    timeoutSeconds: 10
+    
+resources:
+  limits:
+    cpu: "1.5"
+    memory: "2Gi"
+  requests:
+    cpu: "0.5"
+    memory: "1Gi"
+
+service:
+  type: ClusterIP
+  port: 8080
+  targetPort: 8080
+
+virtualService:
+  httpName: hk-aks-demo-java-maven-kaiski
+  hosts: "*"
+  targetSubset: v1
+  uri:
+    prefix: /hk-aks-demo-java-maven-kaiski
+  timeout: 50000ms
+  retries:
+    attempts: 3
+    perTryTimeout: 5000ms
+    retryOn: 5xx,retriable-4xx
+
+destinationRule:
+  trafficPolicy:
+    connectionPool:
+      tcp:
+        maxConnections: 100
+      http:
+        http1MaxPendingRequests: 30
+        maxRequestsPerConnection: 100
+    outlierDetection:
+      consecutiveErrors: 3
+      interval: 600ms
+      baseEjectionTime: 2000ms
+      maxEjectionPercent: 100
+      consecutiveGatewayErrors: 3
+      consecutive5xxErrors: 3
+    
+
+ingress:
+  enabled: false
+
+# FIXME: This should be removed in future.
+# But we are just keeping it to satisfy the dependency as per 1.0.1 Release
+autoscaling:
+  enabled: false
+
+hpa:
+  enabled: false
+  maxReplicas: 2
+  cpu: 80
+  memory: 80
