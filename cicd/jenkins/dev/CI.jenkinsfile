@@ -9,6 +9,7 @@ pipeline {
 
     environment {
         MVN_ARGS = '-Dmaven.gitcommitid.skip=true'
+        MAVEN_OPTS = '--add-opens=jdk.compiler/com.sun.tools.javac.processing=ALL-UNNAMED --add-opens=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED --add-opens=jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED --add-opens=jdk.compiler/com.sun.tools.javac.model=ALL-UNNAMED --add-opens=jdk.compiler/com.sun.tools.javac.code=ALL-UNNAMED --add-opens=jdk.compiler/com.sun.tools.javac.main=ALL-UNNAMED --add-opens=jdk.compiler/com.sun.tools.javac.jvm=ALL-UNNAMED --add-opens=jdk.compiler/com.sun.tools.javac.file=ALL-UNNAMED'
         MAVEN_VERSION = '3.9.9'
         MAVEN_DIR = ".maven/apache-maven-${MAVEN_VERSION}"
     }
@@ -70,6 +71,27 @@ if ! command -v mvn >/dev/null 2>&1; then
   MVN_CMD="${MAVEN_DIR}/bin/mvn"
 fi
 ${MVN_CMD} ''' + "${mavenSettingsArg} ${env.MVN_ARGS} test"
+                }
+            }
+        }
+
+        stage('Deploy') {
+            when {
+                branch 'main'
+            }
+            steps {
+                script {
+                    def mavenSettingsArg = fileExists('settings.xml') ? '-s settings.xml' : ''
+                    // Retry deploy to tolerate transient Artifactory socket resets.
+                    retry(3) {
+                        sh '''#!/bin/bash
+set -euo pipefail
+MVN_CMD="mvn"
+if ! command -v mvn >/dev/null 2>&1; then
+  MVN_CMD="${MAVEN_DIR}/bin/mvn"
+fi
+${MVN_CMD} ''' + "${mavenSettingsArg} ${env.MVN_ARGS} -DskipTests deploy"
+                    }
                 }
             }
         }
