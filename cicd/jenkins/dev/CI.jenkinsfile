@@ -1,8 +1,9 @@
-pipelineJavaMavenAksCI([
+pipelineJavaMavenAksCIPlus([
     pipelineRepository: "ssh://git@github.com:shuyao-zh/shuyao-demo.git",
     pipelinePropertiesFolder: "pipeline",
-    pipelineRepoBranches: [[name:"master"]],
+    pipelineRepoBranches: [[name:"main"]],
     commonPropertiesFileName: "pipeline/jenkins/common/pipeline.properties",
     propertiesFileName: "pipeline/jenkins/dev/ci.properties",
-    HELM_ROLLBACK: "false"
+    skipUpdateBranches: true,
+    javaVersion: "msjdk21"
 ])
