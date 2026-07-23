@@ -14,8 +14,23 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                // Use HTTPS checkout to avoid SSH transport issues on build agents.
-                git branch: "${env.BRANCH_NAME ?: 'main'}", url: 'https://github.com/shuyao-zh/shuyao-demo.git'
+                // Use SSH over 443 with explicit credentials to avoid HTTPS truststore issues and blocked port 22.
+                checkout([
+                    $class: 'GitSCM',
+                    branches: [[name: "*/${env.BRANCH_NAME ?: 'main'}"]],
+                    doGenerateSubmoduleConfigurations: false,
+                    extensions: [[
+                        $class: 'CloneOption',
+                        shallow: true,
+                        depth: 1,
+                        noTags: true,
+                        timeout: 30
+                    ]],
+                    userRemoteConfigs: [[
+                        credentialsId: 'DevSecOps_SCM_SSH_CLONE_PRIVATE_KEY',
+                        url: 'ssh://git@ssh.github.com:443/shuyao-zh/shuyao-demo.git'
+                    ]]
+                ])
             }
         }
 
