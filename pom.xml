@@ -1,0 +1,259 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>com.manulife.hk</groupId>
+	<artifactId>hk-aks-demo-java-maven-shuyao</artifactId>
+	<version>2.1.1-SNAPSHOT</version>
+	<packaging>jar</packaging>
+	<name>hk-aks-demo-java-maven-shuyao</name>
+	<url>https://confluence.ap.manulife.com/display/HST/12+Factors</url>
+	<description>aks-day1</description>
+
+	<!-- Properties -->
+	<properties>
+		<sonar.server.url>https://sonar.ap.manulife.com/ver83</sonar.server.url>
+        <sonar.host.url>https://sonar.ap.manulife.com/</sonar.host.url>
+        <sonar.links.homepage>${project.url}</sonar.links.homepage>
+        <sonar.language>java</sonar.language>
+		<sonar.exclusions>**/DemoApplication.java,
+			**/config/**/*.java,
+			**/model/**/*.java,
+			**/dao/**/*.java,
+			**/enums/**/*.java,
+			**/exception/**/*.java,
+			**/model/**/*.java,
+			**/swagger/**/*.java
+		</sonar.exclusions>
+		<jacoco-maven.version>0.8.5</jacoco-maven.version>
+		<masterBranchName>master</masterBranchName>
+        <developBranchName>develop</developBranchName>
+        <scmCommentPrefix>[RELEASE]</scmCommentPrefix>
+		<start-class>com.manulife.hk.DemoApplication</start-class>
+
+		<!-- RSF compliance -->
+		<rsf.compliance.service.url>http://localhost:8080</rsf.compliance.service.url>
+		<rsf.compliance.publish>false</rsf.compliance.publish>
+		<rsf.compliance.check>false</rsf.compliance.check>
+		<rsf.compliance.phase>install</rsf.compliance.phase>
+
+		<!-- Customized config -->
+
+		<!-- Docker config -->
+		<docker.image.prefix>artifactory.ap.manulife.com/docker/com/manulife/hk/</docker.image.prefix>
+		<dockerfile-maven-plugin.version>1.4.12</dockerfile-maven-plugin.version>
+		<maven-clean-plugin.version>3.1.0</maven-clean-plugin.version>
+		<artifactory-maven-plugin.version>3.2.1</artifactory-maven-plugin.version>
+		<dockerfile.skip>false</dockerfile.skip>
+
+
+		<!-- <docker.image.prefix>artifactory.ap.manulife.com/docker/</docker.image.prefix>
+		<dockerfile-maven-plugin.version>1.4.12</dockerfile-maven-plugin.version>
+		<dockerfile.skip>true</dockerfile.skip>
+
+		<maven-clean-plugin.version>3.1.0</maven-clean-plugin.version>
+		<artifactory-maven-plugin.version>3.2.1</artifactory-maven-plugin.version>
+		<sonar.server.url>https://sonar.ap.manulife.com</sonar.server.url>
+		<sonar.login></sonar.login>
+
+		<dockerfile.skip>true</dockerfile.skip>
+		<rsf.compliance.publish>false</rsf.compliance.publish>
+		<rsf.compliance.service.url>http://localhost:8080</rsf.compliance.service.url> -->
+	</properties>
+
+	<!-- Identifies parent RSF pom -->
+	<parent>
+		<groupId>com.manulife.ap</groupId>
+		<artifactId>rsf-k8s-parent</artifactId>
+		<version>1.0.0</version>
+	</parent>
+
+	<!-- Deploy repositories -->
+	<distributionManagement>
+		<repository>
+			<id>releases</id>
+			<url>https://artifactory.ap.manulife.com/artifactory/libs-release-local</url>
+		</repository>
+		<snapshotRepository>
+			<id>snapshots</id>
+			<url>https://artifactory.ap.manulife.com/artifactory/libs-snapshot-local</url>
+		</snapshotRepository>
+	</distributionManagement>
+
+	<!-- Project dependencies -->
+	<dependencies>
+		<!-- RSF CORE -->
+		<dependency>
+			<groupId>com.manulife.ap</groupId>
+			<artifactId>rsf-core</artifactId>
+			<version>1.0.0</version>
+			<exclusions>
+				<exclusion>
+					<artifactId>spring-cloud-stream</artifactId>
+					<groupId>org.springframework.cloud</groupId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-web</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>javax.validation</groupId>
+			<artifactId>validation-api</artifactId>
+		</dependency>
+
+		<!-- Utils -->
+		<dependency>
+			<groupId>com.shekhargulati</groupId>
+			<artifactId>strman</artifactId>
+			<version>0.4.0</version>
+			<type>jar</type>
+		</dependency>
+
+		<!-- Lombok -->
+		<dependency>
+			<groupId>org.projectlombok</groupId>
+			<artifactId>lombok</artifactId>
+			<version>1.18.8</version>
+			<scope>provided</scope>
+		</dependency>
+	</dependencies>
+	<!-- Build plugins -->
+	<build>
+		<resources>
+			<resource>
+				<directory>src/main/resources</directory>
+				<excludes>
+					<exclude>local/*</exclude>
+					<exclude>pcf/*</exclude>
+				</excludes>
+			</resource>
+			<resource>
+				<directory>src/main/resources/${profiles.active}</directory>
+			</resource>
+		</resources>
+		<plugins>
+			<plugin>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+				<executions>
+					<execution>
+						<goals>
+							<goal>repackage</goal>
+						</goals>
+						<configuration>
+						</configuration>
+					</execution>
+				</executions>
+				<configuration>
+					<addResources>true</addResources>
+					<mainClass>${start-class}</mainClass>
+				</configuration>
+			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<version>3.0.0-M3</version>
+				<configuration>
+					<forkCount>6</forkCount>
+					<reuseForks>true</reuseForks>
+					<!--suppress UnresolvedMavenProperty -->
+					<argLine>${argLine} -Xmx1024m -XX:MaxPermSize=256m</argLine>
+					<reportFormat>plain</reportFormat>
+				</configuration>
+			</plugin>
+
+			<!-- for release-->
+			<plugin>
+				<groupId>org.jfrog.buildinfo</groupId>
+				<artifactId>artifactory-maven-plugin</artifactId>
+				<version>${artifactory-maven-plugin.version}</version>
+				<inherited>true</inherited>
+				<executions>
+					<execution>
+						<id>build-info</id>
+						<goals>
+							<goal>publish</goal>
+						</goals>
+						<configuration>
+							<deployProperties>
+								<groupId>${project.groupId}</groupId>
+								<artifactId>${project.artifactId}</artifactId>
+								<version>${project.version}</version>
+							</deployProperties>
+							<publisher>
+								<contextUrl>${artifactoryContextUrl}</contextUrl>
+								<repoKey>libs-release-local</repoKey>
+								<snapshotRepoKey>libs-snapshot-local</snapshotRepoKey>
+								<publishArtifacts>true</publishArtifacts>
+								<publishBuildInfo>true</publishBuildInfo>
+								<username>${artifactoryUser}</username>
+								<password>${artifactoryPassword}</password>
+							</publisher>
+							<buildInfo>
+                                <buildNumber>{{DRONE_BUILD_NUMBER|TRAVIS_BUILD_NUMBER|CI_BUILD_NUMBER|BUILD_NUMBER}}</buildNumber>
+								<buildUrl>{{DRONE_BUILD_URL|CI_BUILD_URL|BUILD_URL}}</buildUrl>
+							</buildInfo>
+							<licenses>
+								<autoDiscover>true</autoDiscover>
+								<includePublishedArtifacts>true</includePublishedArtifacts>
+								<runChecks>true</runChecks>
+								<violationRecipients>himanshu_sharma@manulife.com</violationRecipients>
+							</licenses>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
+<!-- Profiles -->
+	<profiles>
+		<profile>
+			<id>local</id>
+			<properties>
+				<profiles.active>local</profiles.active>
+				<sonar.host.url>http://localhost:9000/</sonar.host.url>
+				<sonar.links.homepage>${project.url}</sonar.links.homepage>
+				<sonar.language>java</sonar.language>
+				<sonar.links.scm>${project.scm.url}</sonar.links.scm>
+			</properties>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.jacoco</groupId>
+						<artifactId>jacoco-maven-plugin</artifactId>
+						<version>${jacoco-maven.version}</version>
+						<configuration>
+							<output>file</output>
+							<dataFile>${project.basedir}/target/jacoco-server.exec</dataFile>
+							<destFile>${project.basedir}/target/jacoco-server.exec</destFile>
+						</configuration>
+					</plugin>
+					<plugin>
+						<groupId>com.spotify</groupId>
+						<artifactId>dockerfile-maven-plugin</artifactId>
+						<version>${dockerfile-maven-plugin.version}</version>
+						<executions>
+							<execution>
+								<id>default</id>
+								<phase>install</phase>
+								<goals>
+									<goal>build</goal>
+								</goals>
+							</execution>
+						</executions>
+						<configuration>
+							<repository>${docker.image.prefix}${project.artifactId}</repository>
+							<tag>${project.version}</tag>
+							<dockerfile>${basedir}/Dockerfile</dockerfile>
+							<buildArgs>
+								<JAR_FILE>${project.build.finalName}.jar</JAR_FILE>
+							</buildArgs>
+							<skip>${dockerfile.skip}</skip>
+						</configuration>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
+</project>

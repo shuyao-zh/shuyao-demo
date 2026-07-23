@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: svc-hk-aks-demo-java-maven-shuyao
+  namespace: ns-mua-training
+  labels:
+    app: hk-aks-demo-java-maven-shuyao
+spec:
+  type: ClusterIP
+  ports:
+    - name: https
+      protocol: TCP
+      port: 8080
+      targetPort: 8080
+  selector:
+    app: hk-aks-demo-java-maven-shuyao

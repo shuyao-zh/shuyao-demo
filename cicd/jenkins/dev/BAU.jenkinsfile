@@ -1,0 +1,7 @@
+pipelineAKSOperation([
+    pipelineRepository: "ssh://git@git.ap.manulife.com:8080/~kaiskiyang_mfcgd.com/hk-aks-demo-java-maven-cicd.git",
+    pipelinePropertiesFolder: "pipeline",
+    pipelineRepoBranches: [[name:"develop"]],
+    commonPropertiesFileName: "pipeline/jenkins/common/pipeline.properties",
+    propertiesFileName: "pipeline/jenkins/dev/bau.properties"
+])

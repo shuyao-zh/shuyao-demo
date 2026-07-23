@@ -1,0 +1,113 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    app: hk-aks-demo-java-maven-shuyao
+    appName: hk-aks-demo-java-maven-shuyao
+    appsystem: hk
+    revisionHistoryLimit: "2"
+    appVersion: 3.0.1-SNAPSHOT
+    gitCommit: XXXXX
+    env: dev
+    version: p3
+    release: 3.0.1-SNAPSHOT
+    tier: backend
+    country: hkg
+    budev: ato
+    bu: hk
+    track: core
+    costcenter: "8419"
+    pxxdata: "false"
+  name: dep-hk-aks-demo-java-maven-shuyao
+  namespace: ns-mua-training
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: hk-aks-demo-java-maven-shuyao
+  template:
+    metadata:
+      labels:
+        app: hk-aks-demo-java-maven-shuyao
+        appName: hk-aks-demo-java-maven-shuyao
+        appsystem: hk
+        revisionHistoryLimit: "2"
+        appVersion: 3.0.1-SNAPSHOT
+        version: p3
+        gitCommit: XXXXX
+        env: dev
+        release: 3.0.1-SNAPSHOT
+        tier: backend
+        country: hkg
+        budev: mua
+        bu: hk
+        track: core
+        costcenter: "8419"
+        pxxdata: "false"
+      # annotations:
+      #   litmuschaos.io/chaos: "true"
+      #   sidecar.istio.io/inject: "true"
+      #   cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
+      #   prometheus.io/scrape: "true"
+      #   prometheus.io/scheme: "http"
+      #   prometheus.io/port: "15090"
+      #   prometheus.io/path: "/stats/prometheus"
+    spec:
+      containers:
+        - name: hk-aks-demo-java-maven-shuyao
+          image: artifactory.ap.manulife.com/docker/hk-aks-demo-java-maven-kaiski:2.1.1-snapshot
+          ports:
+            - name: http
+              containerPort: 8080
+
+          args : [
+            "--azure.keyvault.enabled=true",
+            "--azure.keyvault.dek-name=HK-DEK",
+            "--azure.keyvault.uri=https://mfcakv-eas-hkcomvault02.vault.azure.net",
+            "--azure.keyvault.client-id=e56ea198-c7d3-4b63-a056-a63be718cac6",
+            "--azure.keyvault.client-key=~2BhkV3l5qp~Y8UXf6dO~kKbGH.mX1-_L.",
+            "--azure.keyvault.tenant-id=5d3e2773-e07f-4432-a630-1a0f68a28a05",
+            # "--rsf.config.server.servicebus.connection-string=Endpoint=sb://mfcsbushkcomnonprodeas01.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=T58lesnrUcV2TU1rJqHzOhY/KFiwteemkV/c1rg067Q=",
+            # "--spring.cloud.config.uri=http://svc-rsf-cfgserver-starter.ns-hkg-shared-system:8888",
+            # "--rsf.config.client.enabled=true",
+            # "--spring.cloud.config.enabled=true",
+            "--spring.application.name=hk-aks-demo-java-maven-kaiski",
+            # "--spring.cloud.stream.bindings.springCloudBusOutput.destination=rcs.ns-hkg-shared-system",
+            # "--spring.cloud.stream.bindings.springCloudBusOutput.binder=rsf-servicebus-topic",
+            # "--spring.cloud.stream.bindings.springCloudBusInput.destination=rcs.ns-hkg-shared-system",
+            # "--spring.cloud.stream.bindings.springCloudBusInput.binder=rsf-servicebus-topic",
+            "--spring.profiles.active=dev",
+            "--newrelic.environment=MLF-PREPROD"
+          ]
+          imagePullPolicy: Always
+          resources:
+            limits:
+              cpu:  "200m"
+              memory: "1000Mi"
+            requests:
+              cpu: "100m"
+              memory: "800Mi"
+
+          livenessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /actuator/health/liveness
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 180
+            periodSeconds: 20
+            tcpSocket: null
+            successThreshold: 1
+            timeoutSeconds: 5
+          readinessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /actuator/health/readiness
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 180
+            periodSeconds: 20
+            tcpSocket: null
+            successThreshold: 1
+            timeoutSeconds: 10

@@ -1,0 +1,14 @@
+version: "3"
+services:
+  web:
+    image: hk-aks-demo-java-maven:1.0.3-SNAPSHOT
+    deploy:
+      replicas: 2
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 300M
+      restart_policy:
+         condition: on-failure
+    ports:
+      - "8080:8080"

@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<configuration scan="true" scanPeriod="60 seconds" debug="false">
+
+    <property name="springAppName" value="hk-aks-demo-java-maven"/>
+
+    <contextName>${springAppName}</contextName>
+
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%-5p . [%d{dd-MM-yyyy HH:mm:ss.SSSZZ,Asia/Hong_Kong}] [%t] [${springAppName:-},%X{X-B3-TraceId:-},%X{X-B3-SpanId:-}] %m%n</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+    </appender>
+
+    <appender name="elkAppender" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="net.logstash.logback.encoder.LogstashEncoder"/>
+    </appender>
+
+    <logger name="jsonLogger" additivity="false" level="INFO">
+        <appender-ref ref="elkAppender"/>
+    </logger>
+
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <encoder>
+            <pattern>%-5p . [%d{dd-MM-yyyy HH:mm:ss.SSSZZ,Asia/Hong_Kong}] [%t] [${springAppName:-},%X{X-B3-TraceId:-},%X{X-B3-SpanId:-}] %m%n</pattern>
+        </encoder>
+
+        <file>logs/${springAppName}.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>logs/${springAppName}.%d.log</fileNamePattern>
+        </rollingPolicy>
+    </appender>
+
+    <root level="INFO">
+        <appender-ref ref="STDOUT"/>
+        <springProfile name="local">
+            <appender-ref ref="FILE"/>
+        </springProfile>
+        <springProfile name="prod,prod-dr">
+            <appender-ref ref="elkAppender" />
+        </springProfile>
+    </root>
+</configuration>

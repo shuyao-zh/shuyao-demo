@@ -1,0 +1,8 @@
+pipelineJavaMavenAksDeployment([
+    pipelineRepository: "ssh://git@git.ap.manulife.com:8080/~kaiskiyang_mfcgd.com/hk-aks-demo-java-maven-cicd.git",
+    pipelinePropertiesFolder: "pipeline",
+    commonPropertiesFileName: "pipeline/jenkins/common/pipeline.properties",
+    pipelineRepoBranches: [[name:"master"]],
+    propertiesFileName: "pipeline/jenkins/prod/dr-cd.properties",
+    HELM_ROLLBACK: "false"
+])

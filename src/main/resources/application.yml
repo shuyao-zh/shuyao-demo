@@ -1,0 +1,32 @@
+server:
+  port: 8080
+  servlet:
+    context-path:
+spring:
+  profiles:
+    active: dev
+  servlet:
+    multipart:
+      enabled: true
+      file-size-threshold: 2KB
+      max-file-size: 200MB
+      max-request-size: 200MB
+logging:
+  path: classpath:logback-spring.xml
+  level:
+    org.springframework: info
+
+management:
+  security:
+    enabled: false
+  endpoints:
+    web:
+      exposure:
+        include: heapdump,loggers,threaddump,info,metrics,health
+  info:
+    git:
+      mode: full
+
+security:
+  basic:
+    enabled: false
