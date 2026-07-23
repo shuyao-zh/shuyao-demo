@@ -1,5 +1,5 @@
 pipelineJavaMavenAksCIPlus([
-    pipelineRepository: "ssh://git@github.com:shuyao-zh/shuyao-demo.git",
+    pipelineRepository: "ssh://git@github.com/shuyao-zh/shuyao-demo.git",
     pipelinePropertiesFolder: "pipeline",
     pipelineRepoBranches: [[name:"main"]],
     commonPropertiesFileName: "pipeline/jenkins/common/pipeline.properties",
