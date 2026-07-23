@@ -27,7 +27,6 @@ pipeline {
                         timeout: 30
                     ]],
                     userRemoteConfigs: [[
-                        credentialsId: 'DevSecOps_SCM_SSH_CLONE_PRIVATE_KEY',
                         url: 'ssh://git@ssh.github.com:443/shuyao-zh/shuyao-demo.git'
                     ]]
                 ])
