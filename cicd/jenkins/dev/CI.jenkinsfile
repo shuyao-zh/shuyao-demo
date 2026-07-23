@@ -14,22 +14,19 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                // Use SSH over 443 with explicit credentials to avoid HTTPS truststore issues and blocked port 22.
-                checkout([
-                    $class: 'GitSCM',
-                    branches: [[name: "*/${env.BRANCH_NAME ?: 'main'}"]],
-                    doGenerateSubmoduleConfigurations: false,
-                    extensions: [[
-                        $class: 'CloneOption',
-                        shallow: true,
-                        depth: 1,
-                        noTags: true,
-                        timeout: 30
-                    ]],
-                    userRemoteConfigs: [[
-                        url: 'ssh://git@ssh.github.com:443/shuyao-zh/shuyao-demo.git'
-                    ]]
-                ])
+                // Avoid JGit transport issues on this agent by using CLI git over HTTPS.
+                deleteDir()
+                retry(3) {
+                    sh '''#!/bin/bash
+set -euo pipefail
+BRANCH="${BRANCH_NAME:-main}"
+git --version
+git init
+git remote add origin https://github.com/shuyao-zh/shuyao-demo.git
+git fetch --depth 1 origin "$BRANCH"
+git checkout -B "$BRANCH" FETCH_HEAD
+'''
+                }
             }
         }
 
