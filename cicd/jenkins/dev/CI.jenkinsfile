@@ -1,9 +1,45 @@
-pipelineJavaMavenAksCIPlus([
-    pipelineRepository: "ssh://git@github.com:shuyao-zh/shuyao-demo.git",
-    pipelinePropertiesFolder: "pipeline",
-    pipelineRepoBranches: [[name:"main"]],
-    commonPropertiesFileName: "pipeline/jenkins/common/pipeline.properties",
-    propertiesFileName: "pipeline/jenkins/dev/ci.properties",
-    skipUpdateBranches: true,
-    javaVersion: "msjdk21"
-])
+pipeline {
+    agent any
+
+    options {
+        timestamps()
+        disableConcurrentBuilds()
+    }
+
+    environment {
+        MVN_ARGS = '-Dmaven.gitcommitid.skip=true'
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+
+        stage('Build') {
+            steps {
+                script {
+                    def mavenSettingsArg = fileExists('settings.xml') ? '-s settings.xml' : ''
+                    sh "mvn ${mavenSettingsArg} ${env.MVN_ARGS} -DskipTests clean package"
+                }
+            }
+        }
+
+        stage('Test') {
+            steps {
+                script {
+                    def mavenSettingsArg = fileExists('settings.xml') ? '-s settings.xml' : ''
+                    sh "mvn ${mavenSettingsArg} ${env.MVN_ARGS} test"
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            junit allowEmptyResults: true, testResults: '**/surefire-reports/*.xml'
+            archiveArtifacts artifacts: 'target/*.jar', allowEmptyArchive: true
+        }
+    }
+}
